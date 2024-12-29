@@ -1,7 +1,6 @@
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
-import time
 
 # API endpoint and headers
 url = "https://api.finanvo.in/company/newcompanies/list"
@@ -139,19 +138,8 @@ def fetch_and_save_data_until_today(start_date):
 if __name__ == "__main__":
     start_date = "2024-12-24"
 
-    while True:
-        current_time = datetime.now()
-        print(f"Current run started at: {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    # Run only once, remove continuous loop
+    fetch_and_save_data_until_today(start_date)
 
-        fetch_and_save_data_until_today(start_date)
-
-        finish_time = datetime.now()
-        print(f"Current run finished at: {finish_time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-        next_run_time = finish_time + timedelta(minutes=5)
-        print(f"Next run scheduled at: {next_run_time.strftime('%Y-%m-%d %H:%M:%S')}")
-
-        create_pivot_table("company_data1.xlsx")
-
-        print("Waiting for 5 minutes before next run...")
-        time.sleep(300)  # Sleep for 5 minutes
+    # Create the pivot table after data fetching is done
+    create_pivot_table("company_data1.xlsx")
