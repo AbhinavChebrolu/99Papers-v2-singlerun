@@ -119,13 +119,16 @@ def log_email_activity(sender_email, recipient_email):
 
 def log_daily_count(daily_count):
     """Log the daily count for each sender to daily_count_logs.csv."""
-    log_entries = [{'email': email, 'daily_count': count} for email, count in daily_count.items()]
+    today_date = datetime.now().strftime('%Y-%m-%d')
+    log_entries = [{'date': today_date, 'sender_email': email, 'mail_count': count} for email, count in daily_count.items()]
     daily_count_df = pd.DataFrame(log_entries)
 
-    if not os.path.exists('daily_count_logs.csv'):
-        daily_count_df.to_csv('daily_count_logs.csv', index=False)
+    if not os.path.exists(DAILY_COUNT_FILE):
+        daily_count_df.to_csv(DAILY_COUNT_FILE, index=False)
     else:
-        daily_count_df.to_csv('daily_count_logs.csv', mode='w', index=False, header=True)
+        existing_df = pd.read_csv(DAILY_COUNT_FILE)
+        combined_df = pd.concat([existing_df, daily_count_df], ignore_index=True)
+        combined_df.to_csv(DAILY_COUNT_FILE, index=False)
 
 def safe_read_excel(file):
     """Safely read an Excel file, returning an empty DataFrame if missing."""
@@ -214,12 +217,10 @@ def main():
             last_send_time[sender_email] = time.time()
             update_status_in_main_file(recipient_email)
 
-            # Log the current daily count after each email
-            log_daily_count(daily_count)
-
     # Log the final daily count
     log_daily_count(daily_count)
     print(f"Data update and email sending process completed.")
 
 if __name__ == "__main__":
     main()
+
