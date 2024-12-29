@@ -14,11 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python 3.7 environment
-      - name: Set up Python 3.7
+      # Step 2: Set up Python 3.10 environment
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7"  # Specify Python 3.7 version
+          python-version: "3.10"  # Specify Python 3.10 version
 
       # Step 3: Install dependencies from requirements.txt
       - name: Install dependencies
