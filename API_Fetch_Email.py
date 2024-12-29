@@ -92,6 +92,7 @@ ALIAS_TEXT = """<p>Hello Team,&nbsp;</p>
 <p>Team&nbsp;<span class="il">99Papers, IN</span></p>
 """  # Replace with your full alias text content
 
+# Functions
 def load_email_content():
     """Load HTML email content or fallback to alias text."""
     if os.path.exists(HTML_CONTENT_FILE):
@@ -117,18 +118,18 @@ def log_email_activity(sender_email, recipient_email):
     }
     append_to_csv(LOG_FILE, log_entry)
 
-def log_daily_count(daily_count):
-    """Log the daily count for each sender to daily_count_logs.csv."""
+def log_daily_count(daily_count, daily_count_file):
+    """Log the daily count for each sender to the specified daily count log file."""
     today_date = datetime.now().strftime('%Y-%m-%d')
     log_entries = [{'date': today_date, 'sender_email': email, 'mail_count': count} for email, count in daily_count.items()]
     daily_count_df = pd.DataFrame(log_entries)
 
-    if not os.path.exists(DAILY_COUNT_FILE):
-        daily_count_df.to_csv(DAILY_COUNT_FILE, index=False)
+    if not os.path.exists(daily_count_file):
+        daily_count_df.to_csv(daily_count_file, index=False)
     else:
-        existing_df = pd.read_csv(DAILY_COUNT_FILE)
+        existing_df = pd.read_csv(daily_count_file)
         combined_df = pd.concat([existing_df, daily_count_df], ignore_index=True)
-        combined_df.to_csv(DAILY_COUNT_FILE, index=False)
+        combined_df.to_csv(daily_count_file, index=False)
 
 def safe_read_excel(file):
     """Safely read an Excel file, returning an empty DataFrame if missing."""
@@ -218,9 +219,8 @@ def main():
             update_status_in_main_file(recipient_email)
 
     # Log the final daily count
-    log_daily_count(daily_count)
+    log_daily_count(daily_count, DAILY_COUNT_FILE)
     print(f"Data update and email sending process completed.")
 
 if __name__ == "__main__":
     main()
-
