@@ -71,3 +71,22 @@ jobs:
         with:
           name: Mailer
           path: Mailer.csv
+
+      - name: Commit and push modified files
+        run: |
+          # Set up Git configuration
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Add the files to the staging area
+          git add Mailer.csv daily_count_logs.csv email_logs.csv company_data1.xlsx
+          
+          # Commit the changes
+          git commit -m "Update logs and company data"
+
+          # Push changes to the repository
+          git push origin main  # Replace 'main' with your branch if needed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Automatically provided in GitHub Actions for pushing
+
+
