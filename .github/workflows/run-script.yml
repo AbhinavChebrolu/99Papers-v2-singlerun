@@ -2,33 +2,44 @@ name: Run Python Scripts
 
 on:
   schedule:
-    - cron: "*/5 * * * *"  # Runs every 5 minutes
+    - cron: "*/5 * * * *"  # Runs every 5 minutes (adjust as needed)
   workflow_dispatch:  # Allows manual triggering
-  
+
 jobs:
   run-scripts:
     runs-on: ubuntu-22.04
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies for building packages
+      # Step 2: Install system dependencies for building packages (required by pandas, etc.)
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libatlas-base-dev build-essential python3-dev
+          sudo apt-get install -y libatlas-base-dev liblapack-dev build-essential python3-dev
 
+      # Step 3: Set up Python environment (Python 3.12 is recommended)
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: "3.12"  # Use Python 3.9
+          python-version: "3.12"
 
-      - name: Install dependencies
+      # Step 4: Upgrade pip, setuptools, and wheel to ensure smooth package installations
+      - name: Upgrade pip, setuptools, and wheel
         run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python -m pip install --upgrade pip setuptools wheel
 
+      # Step 5: Install dependencies from requirements.txt (with preference for binary wheels)
+      - name: Install dependencies from requirements.txt
+        run: |
+          pip install --prefer-binary -r requirements.txt
+
+      # Step 6: Run the API_Fetch.py script
       - name: Run API_Fetch.py
         run: python API_Fetch.py
 
+      # Step 7: Run the API_Fetch_Email.py script
       - name: Run API_Fetch_Email.py
         run: python API_Fetch_Email.py
