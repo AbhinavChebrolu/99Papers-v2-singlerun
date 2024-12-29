@@ -21,10 +21,10 @@ jobs:
           sudo apt-get install -y libatlas-base-dev liblapack-dev build-essential python3-dev
 
       # Step 3: Set up Python environment (Python 3.8 is recommended)
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.9"
 
       # Step 4: Upgrade pip, setuptools, and wheel to ensure smooth package installations
       - name: Upgrade pip, setuptools, and wheel
