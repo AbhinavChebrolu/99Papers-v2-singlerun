@@ -1,15 +1,14 @@
 import pandas as pd
-import time
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
 import os
+import time
 
 # Constants
 MAIL_LIMIT = 70  # Max emails per sender per day
 TIME_GAP = 300  # 5 minutes in seconds
-REFRESH_INTERVAL = 300  # Reload data every 2 minutes
 MAIN_FILE = 'company_data1.xlsx'  # Main Excel file with recipients
 MAILER_FILE = 'Mailer.csv'  # Temp file for recipients
 SENDER_FILE = 'Sender.csv'  # Sender file with credentials
@@ -87,12 +86,12 @@ ALIAS_TEXT = """<p>Hello Team,&nbsp;</p>
 <p>&nbsp;</p>
 <p><strong>Cost - Rs. 1299, including taxes.</strong></p>
 <p>&nbsp;</p>
-<p>Visit our website with the link here -&nbsp;<a href="https://99papers.in/" target="_blank" rel="noopener" data-saferedirecturl="https://www.google.com/url?q=https://lsxqm3jn.r.us-east-2.awstrack.me/L0/https:%252F%252Flazyslate.com%252F/1/010f018d6d2afb58-826969b1-3b9a-49a8-9d6f-df14f5a42e00-000000/RYGvGPm39mwkJdcC41Eitoq4p1w%3D144&amp;source=gmail&amp;ust=1734980047291000&amp;usg=AOvVaw1aodjL2fRcdduad-ztNv66"><strong>Visit Website</strong></a>.</p>
-<p>You can get further information and the link to payment of the bundle using the link here -&nbsp;<a href="https://docs.99papers.in/99Papers%20-%20Sample%20Documents.pdf" target="_blank" rel="noopener" data-saferedirecturl="https://www.google.com/url?q=https://lsxqm3jn.r.us-east-2.awstrack.me/L0/https:%252F%252Flazyslate.com%252F/1/010f018d6d2afb58-826969b1-3b9a-49a8-9d6f-df14f5a42e00-000000/RYGvGPm39mwkJdcC41Eitoq4p1w%3D144&amp;source=gmail&amp;ust=1734980047291000&amp;usg=AOvVaw1aodjL2fRcdduad-ztNv66"><strong>SAMPLE DOCUMENTS</strong></a>.</p>
+<p>Visit our website with the link here -&nbsp;<a href="https://99papers.in/" target="_blank" rel="noopener">Visit Website</a>.</p>
+<p>You can get further information and the link to payment of the bundle using the link here -&nbsp;<a href="https://docs.99papers.in/99Papers%20-%20Sample%20Documents.pdf" target="_blank" rel="noopener">SAMPLE DOCUMENTS</a>.</p>
 <p>If you have any questions, feel free to reply to this mail or contact us at <a href="mailto:support@99papers.in">support@99papers.in</a> or +91 6379934788 with your query.&nbsp;</p>
 <p>Regards,</p>
 <p>Team&nbsp;<span class="il">99Papers, IN</span></p>
-<div>&nbsp;</div>"""  # Replace with your full alias text content
+"""  # Replace with your full alias text content
 
 def load_email_content():
     """Load HTML email content or fallback to alias text."""
@@ -174,43 +173,39 @@ def get_next_sender(senders_df, daily_count, last_send_time):
 def main():
     email_content = load_email_content()
 
-    while True:
-        # Load and filter recipients
-        main_df = safe_read_excel(MAIN_FILE)
-        if main_df.empty:
-            print("Main Excel file is empty or missing.")
-            time.sleep(REFRESH_INTERVAL)
-            continue
+    # Load and filter recipients
+    main_df = safe_read_excel(MAIN_FILE)
+    if main_df.empty:
+        print("Main Excel file is empty or missing.")
+        return
 
-        filtered_df = main_df[main_df['EmailMarketing1Status'] != 'Y']
-        filtered_df[['EMAIL']].to_csv(MAILER_FILE, index=False)
+    filtered_df = main_df[main_df['EmailMarketing1Status'] != 'Y']
+    filtered_df[['EMAIL']].to_csv(MAILER_FILE, index=False)
 
-        senders_df = safe_read_csv(SENDER_FILE)
-        recipients_df = safe_read_csv(MAILER_FILE)
+    senders_df = safe_read_csv(SENDER_FILE)
+    recipients_df = safe_read_csv(MAILER_FILE)
 
-        if senders_df.empty or recipients_df.empty:
-            print("Senders or recipients list is empty. Waiting for refresh...")
-            time.sleep(REFRESH_INTERVAL)
-            continue
+    if senders_df.empty or recipients_df.empty:
+        print("Senders or recipients list is empty.")
+        return
 
-        daily_count = {sender['Email']: 0 for _, sender in senders_df.iterrows()}
-        last_send_time = {sender['Email']: None for _, sender in senders_df.iterrows()}
+    daily_count = {sender['Email']: 0 for _, sender in senders_df.iterrows()}
+    last_send_time = {sender['Email']: None for _, sender in senders_df.iterrows()}
 
-        for _, recipient in recipients_df.iterrows():
-            recipient_email = recipient['EMAIL']
+    for _, recipient in recipients_df.iterrows():
+        recipient_email = recipient['EMAIL']
 
-            sender_email, sender_password = get_next_sender(senders_df, daily_count, last_send_time)
-            if not sender_email:
-                print("No eligible sender found. Pausing...")
-                break
+        sender_email, sender_password = get_next_sender(senders_df, daily_count, last_send_time)
+        if not sender_email:
+            print("No eligible sender found.")
+            break
 
-            if send_email(sender_email, sender_password, recipient_email, email_content):
-                daily_count[sender_email] += 1
-                last_send_time[sender_email] = time.time()
-                update_status_in_main_file(recipient_email)
+        if send_email(sender_email, sender_password, recipient_email, email_content):
+            daily_count[sender_email] += 1
+            last_send_time[sender_email] = time.time()
+            update_status_in_main_file(recipient_email)
 
-        print(f"Waiting for {REFRESH_INTERVAL} seconds before refreshing data...")
-        time.sleep(REFRESH_INTERVAL)
+    print(f"Data update and email sending process completed.")
 
 if __name__ == "__main__":
     main()
