@@ -47,3 +47,27 @@ jobs:
       # Step 7: Run the API_Fetch_Email.py script
       - name: Run API_Fetch_Email.py
         run: python API_Fetch_Email.py
+
+      - name: Upload Excel Data
+        uses: actions/upload-artifact@v3
+        with:
+          name: excel-data
+          path: company_data1.xlsx
+
+      - name: Upload email logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: email-logs
+          path: email_logs.csv
+
+      - name: Upload daily count logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: daily-count
+          path: daily_count_logs.csv
+
+      - name: Mailer logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: Mailer
+          path: Mailer.csv
