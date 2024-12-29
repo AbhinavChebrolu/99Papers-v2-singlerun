@@ -1,5 +1,5 @@
-pandas
+pandas==2.1.0
 time
 smtplib
 os
-requests
+requests==2.32.3
