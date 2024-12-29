@@ -4,31 +4,26 @@ on:
   schedule:
     - cron: "*/5 * * * *"  # Runs every 5 minutes
   workflow_dispatch:  # Allows manual triggering
-
+  
 jobs:
   run-scripts:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python 3.10 environment
-      - name: Set up Python 3.10
+      - name: Set up Python 3.8
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"  # Specify Python 3.10 version
+          python-version: "3.8"  # Use Python 3.8
 
-      # Step 3: Install dependencies from requirements.txt
       - name: Install dependencies
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # Step 4: Run the API_Fetch.py script
       - name: Run API_Fetch.py
         run: python API_Fetch.py
 
-      # Step 5: Run the API_Fetch_Email.py script
       - name: Run API_Fetch_Email.py
         run: python API_Fetch_Email.py
