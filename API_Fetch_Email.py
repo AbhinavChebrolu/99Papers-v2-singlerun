@@ -12,6 +12,7 @@ MAIN_FILE = 'company_data1.xlsx'  # Main Excel file with recipients
 MAILER_FILE = 'Mailer.csv'  # Temp file for recipients
 SENDER_FILE = 'Sender.csv'  # Sender file with credentials
 LOG_FILE = 'email_logs.csv'  # File to log email activities
+DAILY_COUNT_FILE = 'daily_count_logs.csv' # File to log daily email counts
 
 EMAIL_SUBJECT = "99Papers - Find perfect documents for your business now - Reg"
 HTML_CONTENT_FILE = '99papers-content.html'
