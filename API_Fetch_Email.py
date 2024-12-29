@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from datetime import datetime
 import os
 import time
+
 # Constants
 MAIL_LIMIT = 70  # Max emails per sender per day
 TIME_GAP = 300  # 5 minutes in seconds
@@ -12,22 +13,22 @@ MAIN_FILE = 'company_data1.xlsx'  # Main Excel file with recipients
 MAILER_FILE = 'Mailer.csv'  # Temp file for recipients
 SENDER_FILE = 'Sender.csv'  # Sender file with credentials
 LOG_FILE = 'email_logs.csv'  # File to log email activities
-DAILY_COUNT_FILE = 'daily_count_logs.csv' # File to log daily email counts
+DAILY_COUNT_FILE = 'daily_count_logs.csv'  # Daily count logs file
 
 EMAIL_SUBJECT = "99Papers - Find perfect documents for your business now - Reg"
 HTML_CONTENT_FILE = '99papers-content.html'
 ALIAS_TEXT = """<p>Hello Team,&nbsp;</p>
 <p>Best wishes on the successful incorporation of your company! and Welcome to the business ecosystem.</p>
-<p>You must have received the company documents such as AoA, MoA and Certificate of Incorporation from the Ministry of Corporate Affairs. However, many other documents are essential for a company to operate without facing any legal trouble. As overwhelming as it is to start a new company, the burden of the sorting out the required formalities and documentation often adds to the worries, leading to missed deadlines and high penalties. Essential Legal &amp; HR Documents bundle by&nbsp;<span class="il">99papers</span>&nbsp;is a set of pre-prepared editable documents required at different stages of the company, which can be used directly only by affixign your company letterhead to it.&nbsp;</p>
+<p>You must have received the company documents such as AoA, MoA and Certificate of Incorporation from the Ministry of Corporate Affairs. However, many other documents are essential for a company to operate without facing any legal trouble. As overwhelming as it is to start a new company, the burden of the sorting out the required formalities and documentation often adds to the worries, leading to missed deadlines and high penalties. Essential Legal &amp; HR Documents bundle by&nbsp;<span class="il">99papers</span>&nbsp;is a set of pre-prepared editable documents required at different stages of the company, which can be used directly only by affixing your company letterhead to it.&nbsp;</p>
 <p>At&nbsp;<a href="https://www.99papers.in/">99papers.in</a>, we take pride in offering a vast array of esteemed documents tailored to meet the diverse requirements of your organisation. Whether you are navigating through lawful intricacies, streamlining HR processes, or seeking templates for various business activities, we have got you covered.</p>
 <p>The bundle contains documents fit for a wide range of processes &amp; applications such as -&nbsp;</p>
 <ul>
 <li>COVID-19 related documents&nbsp; | Statutory Documents&nbsp;| Non-Disclosure &amp; Copyright</li>
 <li>Hiring | &nbsp;Performance Review | Employee Policies</li>
 <li>Recruitment | HR Forms | HR Letters</li>
-<li>Co-founders' agreement | Tenanncy Agreenment | NDA | Freelancer agreement&nbsp;</li>
+<li>Co-founders' agreement | Tenancy Agreement | NDA | Freelancer agreement&nbsp;</li>
 </ul>
-<p>Some fo the important documents which you'll find in the bundle is listed below&nbsp;</p>
+<p>Some of the important documents you'll find in the bundle are listed below&nbsp;</p>
 <table border="1">
 <tbody>
 <tr>
@@ -93,7 +94,6 @@ ALIAS_TEXT = """<p>Hello Team,&nbsp;</p>
 <p>Team&nbsp;<span class="il">99Papers, IN</span></p>
 """  # Replace with your full alias text content
 
-# Functions
 def load_email_content():
     """Load HTML email content or fallback to alias text."""
     if os.path.exists(HTML_CONTENT_FILE):
@@ -119,18 +119,33 @@ def log_email_activity(sender_email, recipient_email):
     }
     append_to_csv(LOG_FILE, log_entry)
 
-def log_daily_count(daily_count, daily_count_file):
-    """Log the daily count for each sender to the specified daily count log file."""
+def log_daily_count(daily_count):
+    """Logs the daily count of sent emails per sender."""
     today_date = datetime.now().strftime('%Y-%m-%d')
-    log_entries = [{'date': today_date, 'sender_email': email, 'mail_count': count} for email, count in daily_count.items()]
-    daily_count_df = pd.DataFrame(log_entries)
 
-    if not os.path.exists(daily_count_file):
-        daily_count_df.to_csv(daily_count_file, index=False)
+    # Check if the daily count file exists. If it does, read it.
+    if os.path.exists(DAILY_COUNT_FILE):
+        daily_count_df = pd.read_csv(DAILY_COUNT_FILE)
     else:
-        existing_df = pd.read_csv(daily_count_file)
-        combined_df = pd.concat([existing_df, daily_count_df], ignore_index=True)
-        combined_df.to_csv(daily_count_file, index=False)
+        # If the file doesn't exist, create a new DataFrame.
+        daily_count_df = pd.DataFrame(columns=['date', 'sender_email', 'mail_count'])
+
+    # Loop through the daily_count dictionary and update the counts.
+    for sender_email, count in daily_count.items():
+        # Check if this sender and date already exist in the DataFrame.
+        existing_row = daily_count_df[(daily_count_df['date'] == today_date) & 
+                                      (daily_count_df['sender_email'] == sender_email)]
+        if not existing_row.empty:
+            # If the sender's entry for today exists, increment the mail_count.
+            daily_count_df.loc[(daily_count_df['date'] == today_date) & 
+                                (daily_count_df['sender_email'] == sender_email), 'mail_count'] += 1
+        else:
+            # If the sender's entry for today doesn't exist, create a new one.
+            new_row = pd.DataFrame({'date': [today_date], 'sender_email': [sender_email], 'mail_count': [1]})
+            daily_count_df = pd.concat([daily_count_df, new_row], ignore_index=True)
+
+    # Save the updated daily_count_df back to the CSV file.
+    daily_count_df.to_csv(DAILY_COUNT_FILE, index=False)
 
 def safe_read_excel(file):
     """Safely read an Excel file, returning an empty DataFrame if missing."""
@@ -219,9 +234,7 @@ def main():
             last_send_time[sender_email] = time.time()
             update_status_in_main_file(recipient_email)
 
-    # Log the final daily count
-    log_daily_count(daily_count, DAILY_COUNT_FILE)
-    print(f"Data update and email sending process completed.")
+    log_daily_count(daily_count)
 
 if __name__ == "__main__":
     main()
